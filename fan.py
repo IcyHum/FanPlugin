@@ -1,6 +1,7 @@
 import bpy
 import bmesh
 
+# Operator to move the faces
 class MoveFacesAlongNormalsOperator(bpy.types.Operator):
     '''Move the faces along individual normal vectors.'''
     bl_idname = "fan.move_faces_along_normals_operator"
@@ -25,10 +26,16 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
+# Draw the operator in the menu
+def menu_draw(self, context):
+    self.layout.operator("fan.move_faces_along_normals_operator")
+
 def register():
+    bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_draw)
     bpy.utils.register_class(MoveFacesAlongNormalsOperator)
 
 def unregister():
+    bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_draw)
     bpy.utils.unregister_class(MoveFacesAlongNormalsOperator)
 
 if __name__ == "__main__":
