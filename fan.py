@@ -3,6 +3,16 @@ import bmesh
 import mathutils
 import math
 
+bl_info = {
+    "name": "Faces Along Normals",
+    "description": "Move faces along individual normals.",
+    "author": "Márcio Daniel da Rosa",
+    "version": (1, 0),
+    "blender": (2, 64, 0),
+    "location": "Specials menu (edit mode) > Move Faces Along Normals",
+    "warning": "",
+    "category": "Mesh"}
+
 # Operator to move the faces. It first calculates a new position for each vertex of the face, for all
 # selected faces. So, if a vertex is shared with more than one selected face, it will have more than
 # one calculated position. So, the final position is calculated given a list of calculated positions
