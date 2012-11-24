@@ -1,42 +1,80 @@
 import bpy
 import bmesh
+import mathutils
+import math
 
-# Operator to move the faces
+# Operator to move the faces. It first calculates a new position for each vertex of the face, for all
+# selected faces. So, if a vertex is shared with more than one selected face, it will have more than
+# one calculated position. So, the final position is calculated given a list of calculated positions
+# for that vertex.
 class MoveFacesAlongNormalsOperator(bpy.types.Operator):
     '''Move the faces along individual normal vectors.'''
     bl_idname = "fan.move_faces_along_normals_operator"
     bl_label = "Move Faces Along Normals"
     bl_options = {'REGISTER', 'UNDO'}
     
-    distance = bpy.props.FloatProperty(name="Distance")
+    distance = bpy.props.FloatProperty(name="Distance", subtype='DISTANCE', step=1, precision=3)
 
     @classmethod
     def poll(cls, context):
         return context.active_object is not None and context.object.mode == 'EDIT'
 
     def execute(self, context):
-        bm = bmesh.from_edit_mesh(context.object.data)
-        for face in bm.faces:
-            if face.select:
-                normal = face.normal
-                for vertex in face.verts:
-                    vertex.co.x += normal.x * self.distance
-                    vertex.co.y += normal.y * self.distance
-                    vertex.co.z += normal.z * self.distance
-        context.area.tag_redraw()
+        if self.distance > 0:
+            bm = bmesh.from_edit_mesh(context.object.data)
+            calculated_translations_by_vertex_index = dict()
+            for face in bm.faces:
+                if face.select:
+                    self.calculate_translations_for_face_verts(calculated_translations_by_vertex_index, face)
+            self.translate_verts(bm, calculated_translations_by_vertex_index)
+            context.area.tag_redraw()
         return {'FINISHED'}
-
+    
+    # Calculate the translation for each vertex in the face, moving the verts along the face
+    # normal. Input: the dict where the translation vector will be stored by the vertex index
+    # and the face.
+    def calculate_translations_for_face_verts(self, results_dict, face):
+        for vertex in face.verts:
+            translation = mathutils.Vector()
+            translation.x = face.normal.x * self.distance
+            translation.y = face.normal.y * self.distance
+            translation.z = face.normal.z * self.distance
+            if vertex.index in results_dict:
+                results_dict[vertex.index].append(translation)
+            else:
+                results_dict[vertex.index] = [translation]
+    
+    # Calculates the position for each vertex. Input: the bmesh and the dictionary
+    # with the calculated translations for the vertices.
+    def translate_verts(self, mesh, translations_by_vertex_index):
+        for vertex_index in translations_by_vertex_index.keys():
+            vertex = mesh.verts[vertex_index]
+            translations = translations_by_vertex_index[vertex_index]
+            sum = self.sum_points(translations)
+            cathetus = self.distance
+            angle = sum.angle(translations[0])
+            h = cathetus / math.cos(angle)
+            sum.length = h
+            vertex.co += sum
+    
+    # input: list of coordinates, output: a coordinate, the sum of the input coordinates
+    def sum_points(self, coordinates):
+        final_coordinate = mathutils.Vector((0, 0, 0))
+        for co in coordinates:
+            final_coordinate += co
+        return final_coordinate
+    
 # Draw the operator in the menu
 def menu_draw(self, context):
     self.layout.operator("fan.move_faces_along_normals_operator")
 
 def register():
-    bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_draw)
     bpy.utils.register_class(MoveFacesAlongNormalsOperator)
+    bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_draw)
 
 def unregister():
-    bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_draw)
     bpy.utils.unregister_class(MoveFacesAlongNormalsOperator)
+    bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_draw)
 
 if __name__ == "__main__":
     register()
