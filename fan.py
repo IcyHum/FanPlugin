@@ -29,20 +29,30 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
     def poll(cls, context):
         return context.active_object is not None and context.object.mode == 'EDIT'
 
+    # Executes the translation for each selected face. If no faces are affected, then translate all faces.
     def execute(self, context):
         if self.distance > 0:
             bm = bmesh.from_edit_mesh(context.object.data)
-            calculated_translations_by_vertex_index = dict()
-            for face in bm.faces:
-                if face.select:
-                    self.calculate_translations_for_face_verts(calculated_translations_by_vertex_index, face)
-            self.translate_verts(bm, calculated_translations_by_vertex_index)
+            some_face_was_affected = self.translate_faces(bm, True)
+            if not some_face_was_affected:
+                self.translate_faces(bm, False)
             context.area.tag_redraw()
         return {'FINISHED'}
     
-    # Calculate the translation for each vertex in the face, moving the verts along the face
-    # normal. Input: the dict where the translation vector will be stored by the vertex index
-    # and the face.
+    # Move the faces. Input: the bmesh and a flag to define if only the selected faces must be translated,
+    # or all faces must be translated. Output: True if some face was translated, false if not.
+    def translate_faces(self, mesh, selected_faces_only):
+        some_face_was_affected = False
+        calculated_translations_by_vertex_index = dict()
+        for face in mesh.faces:
+            if face.select or not selected_faces_only:
+                self.calculate_translations_for_face_verts(calculated_translations_by_vertex_index, face)
+                some_face_was_affected = True
+        self.translate_verts(mesh, calculated_translations_by_vertex_index)
+        return some_face_was_affected
+    
+    # Calculate the translation for each vertex in the face, along the face normal. Input: the dict where
+    # the translation vector will be stored by the vertex index and the face.
     def calculate_translations_for_face_verts(self, results_dict, face):
         for vertex in face.verts:
             translation = mathutils.Vector()
@@ -54,7 +64,7 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
             else:
                 results_dict[vertex.index] = [translation]
     
-    # Calculates the position for each vertex. Input: the bmesh and the dictionary
+    # Calculates the position for each vertex and updates the coordinates. Input: the bmesh and the dictionary
     # with the calculated translations for the vertices.
     def translate_verts(self, mesh, translations_by_vertex_index):
         for vertex_index in translations_by_vertex_index.keys():
