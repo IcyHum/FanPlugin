@@ -36,6 +36,7 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
             some_face_was_affected = self.translate_faces(bm, True)
             if not some_face_was_affected:
                 self.translate_faces(bm, False)
+            bm.normal_update()
             context.area.tag_redraw()
         return {'FINISHED'}
     
