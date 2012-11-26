@@ -9,7 +9,7 @@ bl_info = {
     "author": "Márcio Daniel da Rosa",
     "version": (1, 0),
     "blender": (2, 64, 0),
-    "location": "Specials menu (edit mode) > Move Faces Along Normals",
+    "location": "3D View (Edit Mode) > Specials menu (W key) > Move Faces Along Normals",
     "warning": "",
     "category": "Mesh"}
 
@@ -31,7 +31,7 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
 
     # Executes the translation for each selected face. If no faces are affected, then translate all faces.
     def execute(self, context):
-        if self.distance > 0:
+        if self.distance != 0:
             bm = bmesh.from_edit_mesh(context.object.data)
             some_face_was_affected = self.translate_faces(bm, True)
             if not some_face_was_affected:
@@ -74,7 +74,7 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
             cathetus = self.distance
             angle = sum.angle(translations[0])
             h = cathetus / math.cos(angle)
-            sum.length = h
+            sum.length = abs(h)
             vertex.co += sum
     
     # input: list of coordinates, output: a coordinate, the sum of the input coordinates
