@@ -5,12 +5,12 @@ It allows you to move faces along individual normal vectors.
 INSTALL:
 
 * Download fan.py
-* Starts Blender
+* Start Blender
 * Go to File > User Preferences > Addons
 * Click on "Install Addon..."
-* Select the fan.py file and click on "Install Addon..."
+* Select the fan.py file and then click on "Install Addon..."
 * Localize the "Mesh: Faces Along Normals" in the list of addons and check the checkbox to enable the addon
-* Tip: if you want to keep the addon enabled after close and restart Blender, you need to save the user settings (File > Save User settings)
+* Tip: if you want to keep the addon enabled after start a new file, you need to save the user settings (File > Save User settings)
 
 USAGE:
 
@@ -18,6 +18,6 @@ USAGE:
 * Enter edit mode (TAB)
 * Select the faces to move
 * Open the specials menu (W)
-* Select Move Faces Along Normals
-* Select the Distance in the Tool panel to move the faces
+* Select "Move Faces Along Normals"
+* Adjust the Distance in the Tool panel to move the faces
 * Tip: extrude the faces without move them (E, ESC), then use the Move Faces Along Normals tool
