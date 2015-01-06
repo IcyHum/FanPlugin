@@ -7,8 +7,8 @@ bl_info = {
     "name": "Faces Along Normals",
     "description": "Move faces along individual normals.",
     "author": "Márcio Daniel da Rosa",
-    "version": (1, 0),
-    "blender": (2, 64, 0),
+    "version": (1, 1),
+    "blender": (2, 73, 0),
     "location": "3D View (Edit Mode) > Specials menu (W key) > Move Faces Along Normals",
     "warning": "",
     "category": "Mesh"}
@@ -68,6 +68,7 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
     # Calculates the position for each vertex and updates the coordinates. Input: the bmesh and the dictionary
     # with the calculated translations for the vertices.
     def translate_verts(self, mesh, translations_by_vertex_index):
+        mesh.verts.ensure_lookup_table()
         for vertex_index in translations_by_vertex_index.keys():
             vertex = mesh.verts[vertex_index]
             translations = translations_by_vertex_index[vertex_index]
