@@ -33,41 +33,56 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
     def execute(self, context):
         if self.distance != 0:
             bm = bmesh.from_edit_mesh(context.object.data)
-            some_face_was_affected = self.translate_faces(bm, True)
-            if not some_face_was_affected:
-                self.translate_faces(bm, False)
+            self.translate_faces_or_edges_or_verts(bm)
             bm.normal_update()
             context.area.tag_redraw()
         return {'FINISHED'}
-    
-    # Move the faces. Input: the bmesh and a flag to define if only the selected faces must be translated,
-    # or all faces must be translated. Output: True if some face was translated, false if not.
-    def translate_faces(self, mesh, selected_faces_only):
-        some_face_was_affected = False
+
+    # Move the faces, edges or vertices (given the selection mode). Input: the bmesh and a flag to define if only
+    # the selected faces must be translated, or all faces must be translated.
+    def translate_faces_or_edges_or_verts(self, mesh):
         calculated_translations_by_vertex_index = dict()
+        #if 'VERT' in mesh.select_mode:
+        if 'EDGE' in mesh.select_mode:
+            self.calculate_translation_for_mesh_edges(calculated_translations_by_vertex_index, mesh)
+        elif 'FACE' in mesh.select_mode:
+            self.calculate_translation_for_mesh_faces(calculated_translations_by_vertex_index, mesh)
+        self.translate_verts(calculated_translations_by_vertex_index, mesh)
+
+    def calculate_translation_for_mesh_edges(self, results_dict, mesh):
+        for edge in mesh.edges:
+            if edge.select:
+                self.calculate_translations_for_edge_verts(results_dict, edge)
+
+    def calculate_translation_for_mesh_faces(self, results_dict, mesh):
         for face in mesh.faces:
-            if face.select or not selected_faces_only:
-                self.calculate_translations_for_face_verts(calculated_translations_by_vertex_index, face)
-                some_face_was_affected = True
-        self.translate_verts(mesh, calculated_translations_by_vertex_index)
-        return some_face_was_affected
+            if face.select:
+                self.calculate_translations_for_face_verts(results_dict, face)
     
     # Calculate the translation for each vertex in the face, along the face normal. Input: the dict where
     # the translation vector will be stored by the vertex index and the face.
     def calculate_translations_for_face_verts(self, results_dict, face):
         for vertex in face.verts:
-            translation = mathutils.Vector()
-            translation.x = face.normal.x * self.distance
-            translation.y = face.normal.y * self.distance
-            translation.z = face.normal.z * self.distance
-            if vertex.index in results_dict:
-                results_dict[vertex.index].append(translation)
-            else:
-                results_dict[vertex.index] = [translation]
-    
+            self.add_translation_vector_to_vertex(results_dict, face.normal, vertex)
+
+    def calculate_translations_for_edge_verts(self, results_dict, edge):
+        for vertex in edge.verts:
+            for face in edge.link_faces:
+                self.add_translation_vector_to_vertex(results_dict, face.normal, vertex)
+
+    def add_translation_vector_to_vertex(self, results_dict, vector, vertex):
+        translation = mathutils.Vector()
+        translation.x = vector.x * self.distance
+        translation.y = vector.y * self.distance
+        translation.z = vector.z * self.distance
+        if vertex.index in results_dict:
+            results_dict[vertex.index].append(translation)
+        else:
+            results_dict[vertex.index] = [translation]
+
     # Calculates the position for each vertex and updates the coordinates. Input: the bmesh and the dictionary
     # with the calculated translations for the vertices.
-    def translate_verts(self, mesh, translations_by_vertex_index):
+    def translate_verts(self, translations_by_vertex_index, mesh):
         mesh.verts.ensure_lookup_table()
         for vertex_index in translations_by_vertex_index.keys():
             vertex = mesh.verts[vertex_index]
