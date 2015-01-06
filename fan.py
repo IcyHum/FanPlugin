@@ -42,12 +42,18 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
     # the selected faces must be translated, or all faces must be translated.
     def translate_faces_or_edges_or_verts(self, mesh):
         calculated_translations_by_vertex_index = dict()
-        #if 'VERT' in mesh.select_mode:
+        if 'VERT' in mesh.select_mode:
+            self.calculate_translation_for_mesh_verts(calculated_translations_by_vertex_index, mesh)
         if 'EDGE' in mesh.select_mode:
             self.calculate_translation_for_mesh_edges(calculated_translations_by_vertex_index, mesh)
         elif 'FACE' in mesh.select_mode:
             self.calculate_translation_for_mesh_faces(calculated_translations_by_vertex_index, mesh)
         self.translate_verts(calculated_translations_by_vertex_index, mesh)
+
+    def calculate_translation_for_mesh_verts(self, results_dict, mesh):
+        for vertex in mesh.verts:
+            if vertex.select:
+                self.add_translation_vector_to_vertex(results_dict, vertex.normal, vertex)
 
     def calculate_translation_for_mesh_edges(self, results_dict, mesh):
         for edge in mesh.edges:
@@ -58,17 +64,17 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
         for face in mesh.faces:
             if face.select:
                 self.calculate_translations_for_face_verts(results_dict, face)
+
+    def calculate_translations_for_edge_verts(self, results_dict, edge):
+        for vertex in edge.verts:
+            for face in edge.link_faces:
+                self.add_translation_vector_to_vertex(results_dict, face.normal, vertex)
     
     # Calculate the translation for each vertex in the face, along the face normal. Input: the dict where
     # the translation vector will be stored by the vertex index and the face.
     def calculate_translations_for_face_verts(self, results_dict, face):
         for vertex in face.verts:
             self.add_translation_vector_to_vertex(results_dict, face.normal, vertex)
-
-    def calculate_translations_for_edge_verts(self, results_dict, edge):
-        for vertex in edge.verts:
-            for face in edge.link_faces:
-                self.add_translation_vector_to_vertex(results_dict, face.normal, vertex)
 
     def add_translation_vector_to_vertex(self, results_dict, vector, vertex):
         translation = mathutils.Vector()
