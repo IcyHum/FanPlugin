@@ -1,6 +1,6 @@
-﻿FAN (Faces Along Normals) Plugin is a plugin for Blender 2.73.
+﻿MOVE ALONG NORMALS PLUGIN (a.k.a. FAN Faces Along Normals Plugin) is a plugin for Blender 2.73.
 
-It allows you to move faces along individual normal vectors.
+It allows you to move vertices, edges or faces along individual normal vectors.
 
 INSTALL
 -------
@@ -10,7 +10,7 @@ INSTALL
 * Go to File > User Preferences > Addons
 * Click on "Install Addon..."
 * Select the fan.py file and then click on "Install Addon..."
-* Localize the "Mesh: Faces Along Normals" in the list of addons and check the checkbox to enable the addon
+* Localize the "Mesh: Move Along Normals" in the list of addons and check the checkbox to enable the addon
 * Tip: if you want to keep the addon enabled after start a new file, you need to save the user settings (File > Save User settings)
 
 USAGE
@@ -18,13 +18,17 @@ USAGE
 
 * Select your mesh object
 * Enter edit mode (TAB)
-* Select the faces to move
+* Choose between vertex selection mode, edge selecion mode or face selection mode
+* Select the vertices/edges/faces to move
 * Open the specials menu (W)
-* Select "Move Faces Along Normals"
-* Adjust the Distance in the Tool panel to move the faces
+* Select "Move Along Normals"
+* Adjust the Distance in the Tool panel to move the vertices/edges/faces
 
 CHANGELOG
 ---------
+
+1.2:
+- Added movements to individual edges and vertices.
 
 1.1:
 - Added compatibility to Blender 2.73
