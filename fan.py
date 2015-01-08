@@ -7,7 +7,7 @@ bl_info = {
     "name": "Move Along Normals",
     "description": "Move vertices, edges or faces along individual normals.",
     "author": "Márcio Daniel da Rosa",
-    "version": (1, 2),
+    "version": (1, 3),
     "blender": (2, 73, 0),
     "location": "3D View (Edit Mode) > Specials menu (W key) > Move Along Normals",
     "warning": "",
@@ -42,23 +42,32 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
     # Input: the bmesh
     def calculate_translations(self, mesh):
         calculated_translations_by_vertex_index = dict()
-        if 'VERT' in mesh.select_mode:
-            self.calculate_translations_for_selected_verts(calculated_translations_by_vertex_index, mesh)
-        if 'EDGE' in mesh.select_mode:
-            self.calculate_translations_for_selected_edges(calculated_translations_by_vertex_index, mesh)
-        elif 'FACE' in mesh.select_mode:
-            self.calculate_translations_for_selected_faces(calculated_translations_by_vertex_index, mesh)
+        self.calculate_translations_for_selected_verts(calculated_translations_by_vertex_index, mesh)
+        self.calculate_translations_for_selected_edges(calculated_translations_by_vertex_index, mesh)
+        self.calculate_translations_for_selected_faces(calculated_translations_by_vertex_index, mesh)
         return calculated_translations_by_vertex_index
 
     def calculate_translations_for_selected_verts(self, results_dict, mesh):
         for vertex in mesh.verts:
-            if vertex.select:
+            if vertex.select and not self.is_vertex_connected_to_a_selected_edge(vertex):
                 self.add_translation_vector_to_vertex(results_dict, vertex.normal, vertex)
+
+    def is_vertex_connected_to_a_selected_edge(self, vertex):
+        for edge in vertex.link_edges:
+            if edge.select:
+                return True
+        return False
 
     def calculate_translations_for_selected_edges(self, results_dict, mesh):
         for edge in mesh.edges:
-            if edge.select:
+            if edge.select and not self.is_edge_connected_to_a_selected_face(edge):
                 self.calculate_translations_for_edge_verts(results_dict, edge)
+
+    def is_edge_connected_to_a_selected_face(self, edge):
+        for face in edge.link_faces:
+            if face.select:
+                return True
+        return False
 
     def calculate_translations_for_selected_faces(self, results_dict, mesh):
         for face in mesh.faces:
