@@ -5,7 +5,6 @@ It allows you to move vertices, edges or faces along individual normal vectors.
 INSTALL
 -------
 
-* Download fan.py
 * Start Blender
 * Go to File > User Preferences > Addons
 * Click on "Install Addon..."
