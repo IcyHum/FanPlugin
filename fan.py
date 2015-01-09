@@ -118,20 +118,13 @@ class MoveFacesAlongNormalsOperator(bpy.types.Operator):
 def specials_menu_draw(self, context):
     self.layout.operator("fan.move_faces_along_normals_operator")
 
-# Draws the operator in the faces menu
-def faces_menu_draw(self, context):
-    self.layout.separator()
-    self.layout.operator("fan.move_faces_along_normals_operator")
-
 def register():
     bpy.utils.register_class(MoveFacesAlongNormalsOperator)
     bpy.types.VIEW3D_MT_edit_mesh_specials.append(specials_menu_draw)
-    bpy.types.VIEW3D_MT_edit_mesh_faces.append(faces_menu_draw)
 
 def unregister():
     bpy.utils.unregister_class(MoveFacesAlongNormalsOperator)
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(specials_menu_draw)
-    bpy.types.VIEW3D_MT_edit_mesh_faces.remove(faces_menu_draw)
     
 if __name__ == "__main__":
     register()
